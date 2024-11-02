@@ -1,22 +1,25 @@
 from dotenv import load_dotenv
 import os
-from tavily import TavilyClient, MissingAPIKeyError
-
-### read up on submit_tool open ai
+from tavily import TavilyClient, MissingAPIKeyError, InvalidAPIKeyError, UsageLimitExceededError
 
 load_dotenv()
+mykey = os.getenv('TAVILY_API_KEY')
 
-#get key
 try:
-    api_key = os.getenv("TAVILY_API_KEY")
+    tavily_client = TavilyClient(api_key=mykey)
 except MissingAPIKeyError:
-     print("API key is missing. Please provide a valid API key.")   
+    print("API key is missing. Please provide a valid API key.")
+except InvalidAPIKeyError:
+    print("Invalid API key provided. Please check your API key.")
 
-#client initialization
-tavily_client = TavilyClient(api_key=api_key)
+#-------------------------------------------------------------------- Detailed Search
 
-# response = tavily_client.search("Who is Leo Messi?") 
-# # This is a simple search query, it returns relevance score of each webpage's results but doesn't compile them into one answer field, 
+# try:
+#     response = tavily_client.search("What happened during the Burning Man floods?")
+# except UsageLimitExceededError: #rr
+
+#     print("Usage limit exceeded. Please check your plan's usage limits or consider upgrading.")
+# # This is a simple search query, it returns relevance score of each webpage's results but doesn't compile them into one answer field. 
 # # formatting compexity : mid
 
 """ search(query, **kwargs)
@@ -55,8 +58,14 @@ include_image_descriptions
 
 """
 
-# response = tavily_client.get_search_context(query="What happened during the Burning Man floods?")
-# # This is a search query with contextual compilation and answers, doesn't provide relevance scores but does give one compiled answer 
+#-------------------------------------------------------------------- Text only Search
+
+# try:
+#     response = tavily_client.get_search_context(query="What happened during the Burning Man floods?")
+# except UsageLimitExceededError:
+#     print("Usage limit exceeded. Please check your plan's usage limits or consider upgrading.")
+
+# # This is a search query with contextual compilation and answers (to build and improve RAG based models), doesn't provide relevance scores but does give one compiled answer 
 # # formatting complexity : high
 
 """ get_search_context(query, **kwargs)
@@ -85,9 +94,15 @@ exclude_domains
     url = domains to exclude from the search, default is none
 """
 
-response= tavily_client.qna_search(query="Who is Leo Messi?") 
-# This is a search query that returns one short answer with maximum summarization 
-# #formatting complexity : low
+#-------------------------------------------------------------------- Short Answer Search
+
+try:
+    response= tavily_client.qna_search(query="Who is Leo Messi?", topic='news')
+except UsageLimitExceededError:
+    print("Usage limit exceeded. Please check your plan's usage limits or consider upgrading.")
+
+#This is a search query that returns one short answer with maximum summarization 
+#formatting complexity : low
 
 """ qna_search(query, **kwargs)
 
@@ -115,48 +130,30 @@ exclude_domains
     url = domains to exclude from the search, default is none
 """
 
+#-------------------------------------------------------------------- Response
+
 print(response)
 
 """response = {
-  "query": "The query provided in the request",
-  "answer": "A short answer to the query",  # This will be None if include_answer is set to False in the request
-  "follow_up_questions": None,  # This feature is still in development
-  "images": [ 
-    {
-      "url": "Image 1 URL",
-      "description": "Image 1 Description",  
-    },
-    {
-      "url": "Image 2 URL",
-      "description": "Image 2 Description",
-    },
-    {
-      "url": "Image 3 URL",
-      "description": "Image 3 Description",
-    },
-    {
-      "url": "Image 4 URL",
-      "description": "Image 4 Description",
-    },
-    {
-      "url": "Image 5 URL",
-      "description": "Image 5 Description",
-    }
-  ],  # This will be a list of string URLs if `include_images` is True and `include_image_descriptions` is False, or an empty list if both set to False.
-  "results": [
-    {
-      "title": "Source 1 Title",
-      "url": "Source 1 URL",
-      "content": "Source 1 Content",
-      "score": 0.99  # This is the "relevancy" score of the source. It ranges from 0 to 1.
-    },
-    {
-      "title": "Source 2 Title",
-      "url": "Source 2 URL",
-      "content": "Source 2 Content",
-      "score": 0.97
-    }
-  ],  # This list will have max_results elements
-  "response_time": 1.09 # This will be your search response time
+query
+    str = what you searched for like the "who is leo messi above"
+answer
+    str = short and direct answer to your query, is "None" unless "inlcude_answer" hyperparameter is set to True
+follow_up_questions 
+    None,  # This feature is still in development
+images
+    if include_image_descriptions is True:
+        url = response['images][0]['url'] gives url
+        description = response['images][0]['description'] gives description
+    if include_images is True:
+        url = response['images][0] gives url
+results
+    title = response['results'][0]['title']
+    url = response['results'][0]['url']
+    content = response['results'][0]['content']
+    score = response['results'][0]['score']  # This is the "relevancy" score of the source. It ranges from 0 to 1.
+  # This list will have max_results elements
+response_time
+    This will be your search response time
 }
 """
