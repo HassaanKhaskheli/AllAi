@@ -144,8 +144,8 @@ follow_up_questions
     None,  # This feature is still in development
 images
     if include_image_descriptions is True:
-        url = response['images][0]['url'] gives url
-        description = response['images][0]['description'] gives description
+        url = response['images][0]['url']
+        description = response['images][0]['description']
     if include_images is True:
         url = response['images][0] gives url
 results
