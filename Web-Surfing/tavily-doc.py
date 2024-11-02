@@ -16,7 +16,7 @@ except InvalidAPIKeyError:
 
 # try:
 #     response = tavily_client.search("What happened during the Burning Man floods?")
-# except UsageLimitExceededError: #rr
+# except UsageLimitExceededError:
 
 #     print("Usage limit exceeded. Please check your plan's usage limits or consider upgrading.")
 # # This is a simple search query, it returns relevance score of each webpage's results but doesn't compile them into one answer field. 
